@@ -36,9 +36,12 @@ public final class SettingsDialog {
     /** Shows the settings dialog to {@code player}. */
     public static void open(Player player, List<SettingDefinition> definitions,
                             PlayerPreferenceService prefs) {
+        // Dialog input keys are used as command-macro names, so they may only be
+        // [A-Za-z0-9_] — our setting keys contain dots. Use a positional key
+        // ("s0", "s1", …) for each input and map it back by index on save.
         List<DialogInput> inputs = new ArrayList<>(definitions.size());
-        for (SettingDefinition def : definitions) {
-            inputs.add(toInput(def, player.getUniqueId(), prefs));
+        for (int i = 0; i < definitions.size(); i++) {
+            inputs.add(toInput(definitions.get(i), inputKey(i), player.getUniqueId(), prefs));
         }
 
         ActionButton save = ActionButton.builder(Component.text("Save", NamedTextColor.GREEN))
@@ -60,11 +63,17 @@ public final class SettingsDialog {
         player.showDialog(dialog);
     }
 
+    /** The macro-safe dialog input key for the definition at {@code index}. */
+    private static String inputKey(int index) {
+        return "s" + index;
+    }
+
     /** Maps one setting definition to the matching Dialog input, pre-filled. */
-    private static DialogInput toInput(SettingDefinition def, UUID player, PlayerPreferenceService prefs) {
+    private static DialogInput toInput(SettingDefinition def, String inputKey, UUID player,
+                                       PlayerPreferenceService prefs) {
         Component label = Component.text(def.title());
         return switch (def.type()) {
-            case TOGGLE -> DialogInput.bool(def.key(), label)
+            case TOGGLE -> DialogInput.bool(inputKey, label)
                     .initial(prefs.getBoolean(player, def.key(), Boolean.parseBoolean(def.defaultValue())))
                     .build();
             case CHOICE -> {
@@ -74,19 +83,19 @@ public final class SettingsDialog {
                     entries.add(SingleOptionDialogInput.OptionEntry.create(
                             opt.value(), Component.text(opt.label()), opt.value().equals(current)));
                 }
-                yield DialogInput.singleOption(def.key(), label, entries).build();
+                yield DialogInput.singleOption(inputKey, label, entries).build();
             }
             case NUMBER -> {
                 float current = (float) prefs.getDouble(player, def.key(),
                         Double.parseDouble(def.defaultValue()));
-                var builder = DialogInput.numberRange(def.key(), label, (float) def.min(), (float) def.max())
+                var builder = DialogInput.numberRange(inputKey, label, (float) def.min(), (float) def.max())
                         .initial(current);
                 if (def.step() > 0) {
                     builder = builder.step((float) def.step());
                 }
                 yield builder.build();
             }
-            case TEXT -> DialogInput.text(def.key(), label)
+            case TEXT -> DialogInput.text(inputKey, label)
                     .initial(prefs.get(player, def.key(), def.defaultValue()))
                     .build();
         };
@@ -97,8 +106,9 @@ public final class SettingsDialog {
                                      List<SettingDefinition> definitions, PlayerPreferenceService prefs) {
         UUID id = player.getUniqueId();
         int changed = 0;
-        for (SettingDefinition def : definitions) {
-            String value = readValue(view, def);
+        for (int i = 0; i < definitions.size(); i++) {
+            SettingDefinition def = definitions.get(i);
+            String value = readValue(view, def, inputKey(i));
             if (value == null) {
                 continue;
             }
@@ -109,15 +119,15 @@ public final class SettingsDialog {
     }
 
     /** Pulls one value out of the response in the type the input produced. */
-    private static String readValue(DialogResponseView view, SettingDefinition def) {
+    private static String readValue(DialogResponseView view, SettingDefinition def, String inputKey) {
         return switch (def.type()) {
             case TOGGLE -> {
-                Boolean b = view.getBoolean(def.key());
+                Boolean b = view.getBoolean(inputKey);
                 yield b == null ? null : Boolean.toString(b);
             }
-            case CHOICE, TEXT -> view.getText(def.key());
+            case CHOICE, TEXT -> view.getText(inputKey);
             case NUMBER -> {
-                Float f = view.getFloat(def.key());
+                Float f = view.getFloat(inputKey);
                 yield f == null ? null : trimNumber(f);
             }
         };
