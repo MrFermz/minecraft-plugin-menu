@@ -1,4 +1,4 @@
-// minecraft-plugin-setting — the in-game per-player settings UI (/setting).
+// minecraft-plugin-menu — the in-game per-player menu UI (/menu).
 // Depends on core as `compileOnly`: core is a separate plugin on the server, so
 // we never bundle it. This plugin holds no state of its own — it renders the
 // settings other plugins register on core's SettingsRegistry and writes the
@@ -24,7 +24,7 @@ tasks.processResources {
 
 tasks.shadowJar {
     archiveClassifier.set("")
-    // relocate("com.example.shadedlib", "com.mrfermz.mcplugins.setting.libs.shadedlib")
+    // relocate("com.example.shadedlib", "com.mrfermz.mcplugins.menu.libs.shadedlib")
 }
 
 tasks.build {

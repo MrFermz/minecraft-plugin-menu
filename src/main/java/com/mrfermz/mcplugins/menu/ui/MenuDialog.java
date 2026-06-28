@@ -1,4 +1,4 @@
-package com.mrfermz.mcplugins.setting.ui;
+package com.mrfermz.mcplugins.menu.ui;
 
 import com.mrfermz.mcplugins.core.settings.PlayerPreferenceService;
 import com.mrfermz.mcplugins.core.settings.SettingDefinition;
@@ -19,7 +19,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
 /**
- * Builds and opens the per-player settings dialog from the registered
+ * Builds and opens the per-player menu from the registered
  * {@link SettingDefinition}s, using Paper's native Dialog API — toggles, dropdowns
  * and sliders render as a real form (no chest-inventory hacks).
  *
@@ -28,12 +28,12 @@ import org.bukkit.entity.Player;
  * its cache immediately so the change takes effect in real time. Pressing escape
  * cancels without saving.
  */
-public final class SettingsDialog {
+public final class MenuDialog {
 
-    private SettingsDialog() {
+    private MenuDialog() {
     }
 
-    /** Shows the settings dialog to {@code player}. */
+    /** Shows the menu dialog to {@code player}. */
     public static void open(Player player, List<SettingDefinition> definitions,
                             PlayerPreferenceService prefs) {
         // Dialog input keys are used as command-macro names, so they may only be
@@ -51,7 +51,7 @@ public final class SettingsDialog {
                         ClickCallback.Options.builder().uses(1).build()))
                 .build();
 
-        DialogBase base = DialogBase.builder(Component.text("Settings"))
+        DialogBase base = DialogBase.builder(Component.text("Menu"))
                 .canCloseWithEscape(true)
                 .inputs(inputs)
                 .build();

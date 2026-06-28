@@ -1,18 +1,18 @@
-name: Settings
+name: Menu
 version: '${version}'
-main: com.mrfermz.mcplugins.setting.SettingPlugin
+main: com.mrfermz.mcplugins.menu.MenuPlugin
 api-version: '1.21'
 author: Mr.Fermz
-description: Per-player settings — an in-game menu for options other plugins expose.
+description: Per-player menu — an in-game UI for options other plugins expose.
 depend: [Core]
 
 commands:
-  setting:
-    description: Open your personal settings menu.
-    usage: /setting
+  menu:
+    description: Open your personal menu.
+    usage: /menu
     aliases: [settings, options, prefs]
 
 permissions:
-  setting.use:
-    description: Open the settings menu.
+  menu.use:
+    description: Open the menu.
     default: true
