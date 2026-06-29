@@ -21,8 +21,10 @@ depend on `minecraft-plugin-core` แบบ `compileOnly` + `depend: [Core]` ค
 
 > Dialog input key ใช้เป็นชื่อ command-macro (อนุญาตแค่ `[A-Za-z0-9_]`) — setting key มีจุด ฉะนั้น `MenuDialog` ใช้ key แบบ positional (`s0`, `s1`, …) แล้ว map กลับเป็น setting key จริงตอนเซฟ
 
-หน้าจอ pre-fill ค่าปัจจุบันของผู้เล่น, มี 2 ปุ่ม:
-- **Save** — เขียนทุก input กลับผ่าน `PlayerPreferenceService.set(...)` (อัปเดต cache ทันที → effect realtime)
+**แบ่งหมวดหมู่ตาม `MenuItem.category()`** — `/menu` เปิดหน้า root ที่มีปุ่มต่อ 1 หมวด (เช่น `Health bar`, `Money`) กดแล้วเปิด dialog ของหมวดนั้น (ถ้ามีหมวดเดียวจะเปิดหมวดนั้นเลย ข้าม root)
+
+dialog ของแต่ละหมวด pre-fill ค่าปัจจุบันของผู้เล่น + มี 2 ปุ่ม:
+- **Save** — เขียนทุก input ในหมวดนั้นกลับผ่าน `PlayerPreferenceService.set(...)` (อัปเดต cache ทันที → effect realtime)
 - **Cancel** — ปิดเฉย ๆ ไม่ save (เหมือนกด Esc)
 
 ## เพิ่ม setting ใหม่ (ทำที่ feature plugin ไม่ต้องแตะ plugin นี้)
@@ -30,19 +32,19 @@ depend on `minecraft-plugin-core` แบบ `compileOnly` + `depend: [Core]` ค
 ```java
 // onEnable ของ feature plugin
 CoreApi.menu(getServer()).ifPresent(reg -> reg.register(
-        MenuItem.choice("healthbar.display", "Healthbar",
+        MenuItem.choice("healthbar.display", "Health bar",
                 "Health bar display", "How damaged entities' health shows to you",
                 List.of(new MenuItem.Option("bar", "Bar"),
-                        new MenuItem.Option("number", "Number (current/total)")),
+                        new MenuItem.Option("number", "Number")),
                 "bar")));
 ```
 
-`/menu` จะโชว์ setting ใหม่ให้อัตโนมัติ (อ่าน registry ตอนเปิดเมนู) — ปัจจุบันมีผู้ใช้แล้ว: `Money` (show on `/money top`) และ `Healthbar` (bar/number)
+`category` (arg ที่ 2) = ชื่อหมวดในเมนู — item ที่ category เดียวกันจะอยู่หน้าเดียวกัน `/menu` โชว์ item ใหม่ให้อัตโนมัติ (อ่าน registry ตอนเปิดเมนู) — ปัจจุบันมีผู้ใช้แล้ว: หมวด **Money** (show on `/money top`) และ **Health bar** (เปิด/ปิด + bar/number)
 
 ## สถานะ
 
-- ✅ `/menu` เปิด Dialog จาก registry, เซฟผ่าน `PlayerPreferenceService`
-- ⏳ ยังเป็นหน้าเดียวรวมทุก setting (ยังไม่แบ่งหน้า/หมวดเป็น dialog list) — เพิ่มภายหลังได้เมื่อ setting เยอะขึ้น
+- ✅ `/menu` เปิด Dialog จาก registry, แบ่งหมวดตาม `category` (root picker → dialog ต่อหมวด), เซฟผ่าน `PlayerPreferenceService`
+- ⏳ ยังไม่มีปุ่ม Back จากหน้าหมวดกลับ root (กด Esc/Cancel แล้วเปิด `/menu` ใหม่)
 
 ## Build
 
