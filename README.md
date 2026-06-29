@@ -21,10 +21,8 @@ depend on `minecraft-plugin-core` แบบ `compileOnly` + `depend: [Core]` ค
 
 > Dialog input key ใช้เป็นชื่อ command-macro (อนุญาตแค่ `[A-Za-z0-9_]`) — setting key มีจุด ฉะนั้น `MenuDialog` ใช้ key แบบ positional (`s0`, `s1`, …) แล้ว map กลับเป็น setting key จริงตอนเซฟ
 
-**แบ่งหมวดหมู่ตาม `MenuItem.category()`** — `/menu` เปิดหน้า root ที่มีปุ่มต่อ 1 หมวด (เช่น `Health bar`, `Money`) กดแล้วเปิด dialog ของหมวดนั้น (ถ้ามีหมวดเดียวจะเปิดหมวดนั้นเลย ข้าม root)
-
-dialog ของแต่ละหมวด pre-fill ค่าปัจจุบันของผู้เล่น + มี 2 ปุ่ม:
-- **Save** — เขียนทุก input ในหมวดนั้นกลับผ่าน `PlayerPreferenceService.set(...)` (อัปเดต cache ทันที → effect realtime)
+**หน้าเดียวรวมทุก option** — `/menu` เปิด dialog เดียว แสดงทุก `MenuItem` ที่ register ไว้เป็น input pre-fill ค่าปัจจุบันของผู้เล่น แล้วมี 2 ปุ่มข้างล่าง:
+- **Save** — เขียนทุก input กลับผ่าน `PlayerPreferenceService.set(...)` (อัปเดต cache ทันที → effect realtime)
 - **Cancel** — ปิดเฉย ๆ ไม่ save (เหมือนกด Esc)
 
 ## เพิ่ม setting ใหม่ (ทำที่ feature plugin ไม่ต้องแตะ plugin นี้)
@@ -39,12 +37,14 @@ CoreApi.menu(getServer()).ifPresent(reg -> reg.register(
                 "bar")));
 ```
 
-`category` (arg ที่ 2) = ชื่อหมวดในเมนู — item ที่ category เดียวกันจะอยู่หน้าเดียวกัน `/menu` โชว์ item ใหม่ให้อัตโนมัติ (อ่าน registry ตอนเปิดเมนู) — ปัจจุบันมีผู้ใช้แล้ว: หมวด **Money** (show on `/money top`) และ **Health bar** (เปิด/ปิด + bar/number)
+`/menu` โชว์ item ใหม่ให้อัตโนมัติ (อ่าน registry ตอนเปิดเมนู) เรียงตามลำดับที่ register — ปัจจุบันมีผู้ใช้แล้ว: **Money** (show on `/money top`) และ **Health bar** (เปิด/ปิด + bar/number)
+
+> `category` (arg ที่ 2 ของ `MenuItem`) ตอนนี้ยังไม่ถูกใช้จัดกลุ่มใน UI (ทุก option อยู่หน้าเดียว) — เก็บไว้เผื่อแบ่งหมวดภายหลัง
 
 ## สถานะ
 
-- ✅ `/menu` เปิด Dialog จาก registry, แบ่งหมวดตาม `category` (root picker → dialog ต่อหมวด), เซฟผ่าน `PlayerPreferenceService`
-- ⏳ ยังไม่มีปุ่ม Back จากหน้าหมวดกลับ root (กด Esc/Cancel แล้วเปิด `/menu` ใหม่)
+- ✅ `/menu` เปิด Dialog หน้าเดียวรวมทุก option จาก registry + Save/Cancel, เซฟผ่าน `PlayerPreferenceService`
+- ⏳ ยังไม่แบ่งหมวด/แบ่งหน้า — ถ้า option เยอะขึ้นมากค่อยเพิ่ม paging หรือจัดกลุ่มตาม `category`
 
 ## Build
 

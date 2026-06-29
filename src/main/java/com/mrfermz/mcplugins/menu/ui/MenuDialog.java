@@ -11,9 +11,7 @@ import io.papermc.paper.registry.data.dialog.input.DialogInput;
 import io.papermc.paper.registry.data.dialog.input.SingleOptionDialogInput;
 import io.papermc.paper.registry.data.dialog.type.DialogType;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickCallback;
@@ -21,84 +19,36 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
 /**
- * Builds and opens the per-player menu from the registered
- * {@link MenuItem}s, using Paper's native Dialog API — toggles, dropdowns
- * and sliders render as a real form (no chest-inventory hacks).
+ * Builds and opens the per-player menu from the registered {@link MenuItem}s,
+ * using Paper's native Dialog API — toggles, dropdowns and sliders render as a
+ * real form (no chest-inventory hacks).
  *
- * <p>Current values are pre-filled from {@link PlayerPreferenceService}; clicking
- * <em>Save</em> writes every input back through the same service, which updates
- * its cache immediately so the change takes effect in real time. Pressing escape
- * cancels without saving.
+ * <p>Everything sits on a single dialog: all options as inputs, with Save and
+ * Cancel below them. Current values are pre-filled from
+ * {@link PlayerPreferenceService}; clicking <em>Save</em> writes every input back
+ * through the service (updating its cache immediately, so the change is realtime),
+ * while <em>Cancel</em> (or escape) closes without saving.
  */
 public final class MenuDialog {
 
     private MenuDialog() {
     }
 
-    /**
-     * Opens the menu for {@code player}. Items are grouped by
-     * {@link MenuItem#category()} — the root dialog shows one button per category,
-     * and each button opens that category's own dialog (with Save / Cancel). If
-     * there's only one category, its dialog opens directly.
-     */
+    /** Opens the single-page menu for {@code player}, listing every option. */
     public static void open(Player player, List<MenuItem> definitions,
                             PlayerPreferenceService prefs) {
-        Map<String, List<MenuItem>> byCategory = new LinkedHashMap<>();
-        for (MenuItem item : definitions) {
-            String category = item.category() == null || item.category().isBlank()
-                    ? "General" : item.category();
-            byCategory.computeIfAbsent(category, k -> new ArrayList<>()).add(item);
-        }
-
-        if (byCategory.size() == 1) {
-            Map.Entry<String, List<MenuItem>> only = byCategory.entrySet().iterator().next();
-            openCategory(player, only.getKey(), only.getValue(), prefs);
-            return;
-        }
-        openRoot(player, byCategory, prefs);
-    }
-
-    /** The root picker: one button per category, each opening its own dialog. */
-    private static void openRoot(Player player, Map<String, List<MenuItem>> byCategory,
-                                 PlayerPreferenceService prefs) {
-        List<ActionButton> buttons = new ArrayList<>(byCategory.size());
-        for (Map.Entry<String, List<MenuItem>> entry : byCategory.entrySet()) {
-            String category = entry.getKey();
-            List<MenuItem> items = entry.getValue();
-            buttons.add(ActionButton.builder(Component.text(category))
-                    .tooltip(Component.text(items.size() + " option(s)"))
-                    .action(DialogAction.customClick(
-                            (view, audience) -> openCategory(player, category, items, prefs),
-                            ClickCallback.Options.builder().uses(1).build()))
-                    .build());
-        }
-
-        DialogBase base = DialogBase.builder(Component.text("Menu"))
-                .canCloseWithEscape(true)
-                .build();
-
-        Dialog dialog = Dialog.create(factory -> factory.empty()
-                .base(base)
-                .type(DialogType.multiAction(buttons).columns(1).build()));
-
-        player.showDialog(dialog);
-    }
-
-    /** One category's dialog: its inputs plus Save / Cancel. */
-    private static void openCategory(Player player, String category, List<MenuItem> items,
-                                     PlayerPreferenceService prefs) {
         // Dialog input keys are used as command-macro names, so they may only be
         // [A-Za-z0-9_] — our setting keys contain dots. Use a positional key
         // ("s0", "s1", …) for each input and map it back by index on save.
-        List<DialogInput> inputs = new ArrayList<>(items.size());
-        for (int i = 0; i < items.size(); i++) {
-            inputs.add(toInput(items.get(i), inputKey(i), player.getUniqueId(), prefs));
+        List<DialogInput> inputs = new ArrayList<>(definitions.size());
+        for (int i = 0; i < definitions.size(); i++) {
+            inputs.add(toInput(definitions.get(i), inputKey(i), player.getUniqueId(), prefs));
         }
 
         ActionButton save = ActionButton.builder(Component.text("Save", NamedTextColor.GREEN))
                 .tooltip(Component.text("Save your changes"))
                 .action(DialogAction.customClick(
-                        (view, audience) -> applyAndSave(view, player, items, prefs),
+                        (view, audience) -> applyAndSave(view, player, definitions, prefs),
                         ClickCallback.Options.builder().uses(1).build()))
                 .build();
 
@@ -112,7 +62,7 @@ public final class MenuDialog {
                         ClickCallback.Options.builder().uses(1).build()))
                 .build();
 
-        DialogBase base = DialogBase.builder(Component.text(category))
+        DialogBase base = DialogBase.builder(Component.text("Menu"))
                 .canCloseWithEscape(true)
                 .inputs(inputs)
                 .build();
