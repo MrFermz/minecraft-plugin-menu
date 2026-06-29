@@ -45,9 +45,19 @@ public final class MenuDialog {
         }
 
         ActionButton save = ActionButton.builder(Component.text("Save", NamedTextColor.GREEN))
-                .tooltip(Component.text("Save your settings"))
+                .tooltip(Component.text("Save your changes"))
                 .action(DialogAction.customClick(
                         (view, audience) -> applyAndSave(view, player, definitions, prefs),
+                        ClickCallback.Options.builder().uses(1).build()))
+                .build();
+
+        // Cancel just closes the dialog (afterAction CLOSE) without persisting —
+        // no PlayerPreferenceService.set() is called.
+        ActionButton cancel = ActionButton.builder(Component.text("Cancel", NamedTextColor.RED))
+                .tooltip(Component.text("Close without saving"))
+                .action(DialogAction.customClick(
+                        (view, audience) -> player.sendMessage(
+                                Component.text("Cancelled — nothing was saved.", NamedTextColor.GRAY)),
                         ClickCallback.Options.builder().uses(1).build()))
                 .build();
 
@@ -58,7 +68,7 @@ public final class MenuDialog {
 
         Dialog dialog = Dialog.create(factory -> factory.empty()
                 .base(base)
-                .type(DialogType.notice(save)));
+                .type(DialogType.multiAction(List.of(save, cancel)).columns(2).build()));
 
         player.showDialog(dialog);
     }

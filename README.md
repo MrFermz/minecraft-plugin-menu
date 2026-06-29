@@ -21,7 +21,9 @@ depend on `minecraft-plugin-core` แบบ `compileOnly` + `depend: [Core]` ค
 
 > Dialog input key ใช้เป็นชื่อ command-macro (อนุญาตแค่ `[A-Za-z0-9_]`) — setting key มีจุด ฉะนั้น `MenuDialog` ใช้ key แบบ positional (`s0`, `s1`, …) แล้ว map กลับเป็น setting key จริงตอนเซฟ
 
-หน้าจอ pre-fill ค่าปัจจุบันของผู้เล่น, ปุ่ม **Save** เขียนทุก input กลับผ่าน `PlayerPreferenceService.set(...)` (อัปเดต cache ทันที → effect realtime), กด Esc = ยกเลิก
+หน้าจอ pre-fill ค่าปัจจุบันของผู้เล่น, มี 2 ปุ่ม:
+- **Save** — เขียนทุก input กลับผ่าน `PlayerPreferenceService.set(...)` (อัปเดต cache ทันที → effect realtime)
+- **Cancel** — ปิดเฉย ๆ ไม่ save (เหมือนกด Esc)
 
 ## เพิ่ม setting ใหม่ (ทำที่ feature plugin ไม่ต้องแตะ plugin นี้)
 
