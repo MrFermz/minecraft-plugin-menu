@@ -1,9 +1,9 @@
 package com.mrfermz.mcplugins.menu.command;
 
 import com.mrfermz.mcplugins.core.CoreApi;
-import com.mrfermz.mcplugins.core.settings.PlayerPreferenceService;
-import com.mrfermz.mcplugins.core.settings.SettingDefinition;
-import com.mrfermz.mcplugins.core.settings.SettingsRegistry;
+import com.mrfermz.mcplugins.core.menu.MenuItem;
+import com.mrfermz.mcplugins.core.menu.MenuRegistry;
+import com.mrfermz.mcplugins.core.menu.PlayerPreferenceService;
 import com.mrfermz.mcplugins.menu.ui.MenuDialog;
 import java.util.List;
 import net.kyori.adventure.text.Component;
@@ -16,8 +16,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * {@code /menu} — opens the player's personal menu (a native Dialog). Pulls the
- * available settings from core's {@link SettingsRegistry} and the player's
- * current values from {@link PlayerPreferenceService}.
+ * available options from core's {@link MenuRegistry} and the player's current
+ * values from {@link PlayerPreferenceService}.
  */
 public final class MenuCommand implements CommandExecutor {
 
@@ -34,7 +34,7 @@ public final class MenuCommand implements CommandExecutor {
             return true;
         }
 
-        SettingsRegistry registry = CoreApi.settings(player.getServer()).orElse(null);
+        MenuRegistry registry = CoreApi.menu(player.getServer()).orElse(null);
         PlayerPreferenceService prefs = CoreApi.preferences(player.getServer()).orElse(null);
         if (registry == null || prefs == null) {
             player.sendMessage(Component.text("The menu is unavailable right now "
@@ -42,7 +42,7 @@ public final class MenuCommand implements CommandExecutor {
             return true;
         }
 
-        List<SettingDefinition> definitions = registry.all();
+        List<MenuItem> definitions = registry.all();
         if (definitions.isEmpty()) {
             player.sendMessage(Component.text("There are no options to change yet.",
                     NamedTextColor.YELLOW));

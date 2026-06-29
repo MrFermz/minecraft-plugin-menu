@@ -1,7 +1,7 @@
 package com.mrfermz.mcplugins.menu.ui;
 
-import com.mrfermz.mcplugins.core.settings.PlayerPreferenceService;
-import com.mrfermz.mcplugins.core.settings.SettingDefinition;
+import com.mrfermz.mcplugins.core.menu.MenuItem;
+import com.mrfermz.mcplugins.core.menu.PlayerPreferenceService;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.dialog.DialogResponseView;
 import io.papermc.paper.registry.data.dialog.ActionButton;
@@ -20,7 +20,7 @@ import org.bukkit.entity.Player;
 
 /**
  * Builds and opens the per-player menu from the registered
- * {@link SettingDefinition}s, using Paper's native Dialog API — toggles, dropdowns
+ * {@link MenuItem}s, using Paper's native Dialog API — toggles, dropdowns
  * and sliders render as a real form (no chest-inventory hacks).
  *
  * <p>Current values are pre-filled from {@link PlayerPreferenceService}; clicking
@@ -34,7 +34,7 @@ public final class MenuDialog {
     }
 
     /** Shows the menu dialog to {@code player}. */
-    public static void open(Player player, List<SettingDefinition> definitions,
+    public static void open(Player player, List<MenuItem> definitions,
                             PlayerPreferenceService prefs) {
         // Dialog input keys are used as command-macro names, so they may only be
         // [A-Za-z0-9_] — our setting keys contain dots. Use a positional key
@@ -69,7 +69,7 @@ public final class MenuDialog {
     }
 
     /** Maps one setting definition to the matching Dialog input, pre-filled. */
-    private static DialogInput toInput(SettingDefinition def, String inputKey, UUID player,
+    private static DialogInput toInput(MenuItem def, String inputKey, UUID player,
                                        PlayerPreferenceService prefs) {
         Component label = Component.text(def.title());
         return switch (def.type()) {
@@ -79,7 +79,7 @@ public final class MenuDialog {
             case CHOICE -> {
                 String current = prefs.get(player, def.key(), def.defaultValue());
                 List<SingleOptionDialogInput.OptionEntry> entries = new ArrayList<>();
-                for (SettingDefinition.Option opt : def.options()) {
+                for (MenuItem.Option opt : def.options()) {
                     entries.add(SingleOptionDialogInput.OptionEntry.create(
                             opt.value(), Component.text(opt.label()), opt.value().equals(current)));
                 }
@@ -103,11 +103,11 @@ public final class MenuDialog {
 
     /** Reads each input from the submitted response and persists it. */
     private static void applyAndSave(DialogResponseView view, Player player,
-                                     List<SettingDefinition> definitions, PlayerPreferenceService prefs) {
+                                     List<MenuItem> definitions, PlayerPreferenceService prefs) {
         UUID id = player.getUniqueId();
         int changed = 0;
         for (int i = 0; i < definitions.size(); i++) {
-            SettingDefinition def = definitions.get(i);
+            MenuItem def = definitions.get(i);
             String value = readValue(view, def, inputKey(i));
             if (value == null) {
                 continue;
@@ -119,7 +119,7 @@ public final class MenuDialog {
     }
 
     /** Pulls one value out of the response in the type the input produced. */
-    private static String readValue(DialogResponseView view, SettingDefinition def, String inputKey) {
+    private static String readValue(DialogResponseView view, MenuItem def, String inputKey) {
         return switch (def.type()) {
             case TOGGLE -> {
                 Boolean b = view.getBoolean(inputKey);

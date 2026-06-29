@@ -3,16 +3,16 @@
 เมนู **ต่อผู้เล่นแต่ละคน** ในเกม — คำสั่ง `/menu` (alias `settings`/`options`/`prefs`) เปิดหน้าต่างฟอร์มขึ้นมาให้ผู้เล่นปรับค่าของตัวเอง ชื่อ plugin ที่โชว์ใน `/pl` = **`Menu`**
 
 plugin ตัวนี้ **ไม่มี state / ไม่มีตารางของตัวเอง** — เป็นแค่ front-end:
-- อ่านรายการ setting จาก `SettingsRegistry` ของ core (feature plugin เป็นคน register setting ของตัวเอง)
+- อ่านรายการ setting จาก `MenuRegistry` ของ core (feature plugin เป็นคน register setting ของตัวเอง)
 - อ่าน/เขียนค่าต่อผู้เล่นผ่าน `PlayerPreferenceService` ของ core (เก็บลง DB กลาง ตาราง `setting_values`)
 
 depend on `minecraft-plugin-core` แบบ `compileOnly` + `depend: [Core]` คุยผ่าน `CoreApi` ตอน runtime (ดู [CLAUDE.md](../CLAUDE.md))
 
 ## UI — Paper native Dialog API
 
-ใช้ **Dialog API ของ Paper** (`io.papermc.paper.dialog.*`) render เป็นฟอร์มจริง ไม่ใช่ chest GUI hack — แต่ละ `SettingDefinition` map เป็น input ตามชนิด:
+ใช้ **Dialog API ของ Paper** (`io.papermc.paper.dialog.*`) render เป็นฟอร์มจริง ไม่ใช่ chest GUI hack — แต่ละ `MenuItem` map เป็น input ตามชนิด:
 
-| `SettingType` | Dialog input | ค่าที่อ่านกลับ |
+| `MenuItemType` | Dialog input | ค่าที่อ่านกลับ |
 |---|---|---|
 | `TOGGLE` | `BooleanDialogInput` | `DialogResponseView.getBoolean` |
 | `CHOICE` | `SingleOptionDialogInput` (dropdown) | `getText` (= option value) |
@@ -27,11 +27,11 @@ depend on `minecraft-plugin-core` แบบ `compileOnly` + `depend: [Core]` ค
 
 ```java
 // onEnable ของ feature plugin
-CoreApi.settings(getServer()).ifPresent(reg -> reg.register(
-        SettingDefinition.choice("healthbar.display", "Healthbar",
+CoreApi.menu(getServer()).ifPresent(reg -> reg.register(
+        MenuItem.choice("healthbar.display", "Healthbar",
                 "Health bar display", "How damaged entities' health shows to you",
-                List.of(new SettingDefinition.Option("bar", "Bar"),
-                        new SettingDefinition.Option("number", "Number (current/total)")),
+                List.of(new MenuItem.Option("bar", "Bar"),
+                        new MenuItem.Option("number", "Number (current/total)")),
                 "bar")));
 ```
 
